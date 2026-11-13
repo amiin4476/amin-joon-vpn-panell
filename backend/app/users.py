@@ -139,3 +139,31 @@ def update_user(
 
     return user
 
+@router.delete("/{user_id}")
+def delete_user(
+    user_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    if user_id == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="امکان حذف حساب مدیر واردشده وجود ندارد",
+        )
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="کاربر پیدا نشد",
+        )
+
+    db.delete(user)
+    db.commit()
+
+    return {
+        "status": "success",
+        "message": "کاربر با موفقیت حذف شد",
+    }
+
