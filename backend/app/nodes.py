@@ -25,7 +25,7 @@ class NodeCreate(BaseModel):
     name: str = Field(min_length=2, max_length=100)
     host: str = Field(min_length=1, max_length=255)
     port: int = Field(default=22, ge=1, le=65535)
-    agent_port: int = Field(default=9000, ge=1, le=65535)
+    agent_port: int = Field(default=443, ge=1, le=65535)
     agent_token: str = Field(min_length=32, max_length=512)
     country: str | None = Field(default=None, max_length=100)
     city: str | None = Field(default=None, max_length=100)
