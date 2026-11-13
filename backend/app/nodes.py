@@ -18,6 +18,7 @@ class NodeCreate(BaseModel):
     name: str = Field(min_length=2, max_length=100)
     host: str = Field(min_length=1, max_length=255)
     port: int = Field(default=22, ge=1, le=65535)
+    agent_port: int = Field(default=9000, ge=1, le=65535)
     country: str | None = Field(default=None, max_length=100)
     city: str | None = Field(default=None, max_length=100)
     description: str | None = Field(default=None, max_length=500)
@@ -27,6 +28,7 @@ class NodeUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=2, max_length=100)
     host: str | None = Field(default=None, min_length=1, max_length=255)
     port: int | None = Field(default=None, ge=1, le=65535)
+    agent_port: int | None = Field(default=None, ge=1, le=65535)
     country: str | None = Field(default=None, max_length=100)
     city: str | None = Field(default=None, max_length=100)
     description: str | None = Field(default=None, max_length=500)
@@ -38,6 +40,7 @@ class NodeResponse(BaseModel):
     name: str
     host: str
     port: int
+    agent_port: int
     country: str | None
     city: str | None
     description: str | None
