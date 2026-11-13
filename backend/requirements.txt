@@ -10,3 +10,4 @@ alembic>=1.15,<2.0
 # Authentication and security
 PyJWT>=2.10,<3.0
 pwdlib[argon2]>=0.2,<1.0
+cryptography>=44.0,<47.0
