@@ -5,6 +5,7 @@ from sqlalchemy import (
     DateTime,
     Integer,
     String,
+    Text,
     func,
 )
 
@@ -68,10 +69,24 @@ class Node(Base):
         nullable=False,
     )
 
+    # SSH port
     port = Column(
         Integer,
         default=22,
         nullable=False,
+    )
+
+    # Node Agent port
+    agent_port = Column(
+        Integer,
+        default=9000,
+        nullable=False,
+    )
+
+    # Encrypted Agent token; never return this in API responses
+    agent_token_encrypted = Column(
+        Text,
+        nullable=True,
     )
 
     country = Column(
