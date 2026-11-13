@@ -1,7 +1,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
 from .database import get_db
@@ -53,6 +53,41 @@ class NodeResponse(BaseModel):
 
     model_config = {
         "from_attributes": True
+    }
+
+
+@router.get("/stats/summary")
+def node_summary(
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    total = db.query(Node).count()
+
+    active = db.query(Node).filter(
+        Node.is_active.is_(True)
+    ).count()
+
+    inactive = db.query(Node).filter(
+        Node.is_active.is_(False)
+    ).count()
+
+    status_counts = (
+        db.query(
+            Node.status,
+            func.count(Node.id),
+        )
+        .group_by(Node.status)
+        .all()
+    )
+
+    return {
+        "total": total,
+        "active": active,
+        "inactive": inactive,
+        "statuses": {
+            status_name: count
+            for status_name, count in status_counts
+        },
     }
 
 
