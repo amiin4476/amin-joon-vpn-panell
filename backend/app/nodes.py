@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from .database import get_db
 from .models import Node, User
 from .permissions import require_admin
+from .node_security import encrypt_node_token
 
 
 router = APIRouter(
@@ -19,6 +20,12 @@ class NodeCreate(BaseModel):
     host: str = Field(min_length=1, max_length=255)
     port: int = Field(default=22, ge=1, le=65535)
     agent_port: int = Field(default=9000, ge=1, le=65535)
+
+    agent_token: str = Field(
+        min_length=32,
+        max_length=512,
+    )
+
     country: str | None = Field(default=None, max_length=100)
     city: str | None = Field(default=None, max_length=100)
     description: str | None = Field(default=None, max_length=500)
@@ -29,6 +36,13 @@ class NodeUpdate(BaseModel):
     host: str | None = Field(default=None, min_length=1, max_length=255)
     port: int | None = Field(default=None, ge=1, le=65535)
     agent_port: int | None = Field(default=None, ge=1, le=65535)
+
+    agent_token: str | None = Field(
+        default=None,
+        min_length=32,
+        max_length=512,
+    )
+
     country: str | None = Field(default=None, max_length=100)
     city: str | None = Field(default=None, max_length=100)
     description: str | None = Field(default=None, max_length=500)
@@ -80,7 +94,12 @@ def create_node(
             detail="این نام سرور قبلاً ثبت شده است",
         )
 
-    node = Node(**data.model_dump())
+    node_data = data.model_dump(exclude={"agent_token"})
+
+    node = Node(
+        **node_data,
+        agent_token_encrypted=encrypt_node_token(data.agent_token),
+    )
 
     db.add(node)
     db.commit()
@@ -104,7 +123,10 @@ def update_node(
             detail="سرور پیدا نشد",
         )
 
-    changes = data.model_dump(exclude_unset=True)
+    changes = data.model_dump(
+        exclude_unset=True,
+        exclude={"agent_token"},
+    )
 
     if "name" in changes and changes["name"] is not None:
         duplicate = db.query(Node).filter(
@@ -120,6 +142,11 @@ def update_node(
 
     for field, value in changes.items():
         setattr(node, field, value)
+
+    if data.agent_token is not None:
+        node.agent_token_encrypted = encrypt_node_token(
+            data.agent_token
+        )
 
     db.commit()
     db.refresh(node)
