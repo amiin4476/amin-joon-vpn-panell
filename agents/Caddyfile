@@ -1,3 +1,13 @@
+{
+    email {$ACME_EMAIL:}
+}
+
 {$AGENT_DOMAIN:localhost} {
+    tls {
+        issuer acme {
+            profile shortlived
+        }
+    }
+
     reverse_proxy node-agent:9000
 }
