@@ -15,12 +15,14 @@ AGENT_TOKEN = os.getenv("AGENT_TOKEN", "")
 NODE_NAME = os.getenv("NODE_NAME", "unknown-node")
 
 if len(AGENT_TOKEN) < 32:
-    raise RuntimeError("AGENT_TOKEN must contain at least 32 characters")
+    raise RuntimeError(
+        "AGENT_TOKEN must contain at least 32 characters"
+    )
 
 
 app = FastAPI(
     title=APP_NAME,
-    version="0.2.0",
+    version="0.3.0",
     docs_url=None,
     redoc_url=None,
 )
@@ -62,7 +64,10 @@ def check_rate_limit(client_ip: str):
 
 def protect_request(request: Request, authorization: str | None):
     authenticate(authorization)
-    check_rate_limit(request.client.host if request.client else "unknown")
+
+    check_rate_limit(
+        request.client.host if request.client else "unknown"
+    )
 
 
 class AgentInfo(BaseModel):
@@ -101,26 +106,37 @@ def metrics(
 ):
     protect_request(request, authorization)
 
+    cpu_percent = psutil.cpu_percent(interval=0.5)
+    cpu_cores = psutil.cpu_count()
+
     memory = psutil.virtual_memory()
     disk = psutil.disk_usage("/")
 
     return {
         "node": NODE_NAME,
+
+        "cpu_percent": cpu_percent,
+        "memory_percent": memory.percent,
+        "disk_percent": disk.percent,
+
         "cpu": {
-            "percent": psutil.cpu_percent(interval=0.5),
-            "cores": psutil.cpu_count(),
+            "percent": cpu_percent,
+            "cores": cpu_cores,
         },
+
         "memory": {
             "total_bytes": memory.total,
             "used_bytes": memory.used,
             "percent": memory.percent,
         },
+
         "disk": {
             "total_bytes": disk.total,
             "used_bytes": disk.used,
             "free_bytes": disk.free,
             "percent": disk.percent,
         },
+
         "time": datetime.now(timezone.utc).isoformat(),
     }
 
