@@ -1,5 +1,16 @@
 
 fastapi==0.115.12
 uvicorn[standard]==0.34.2
-pydantic==2.11.4
-psutil==7.0.0
+pydantic-settings==2.9.1
+
+# Database
+SQLAlchemy>=2.0,<3.0
+psycopg[binary]>=3.2,<4.0
+alembic>=1.15,<2.0
+
+# Authentication and security
+PyJWT>=2.10,<3.0
+pwdlib[argon2]>=0.2,<1.0
+
+# Secure HTTP communication with Nodes
+httpx==0.28.1
