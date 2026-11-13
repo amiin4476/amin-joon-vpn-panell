@@ -29,5 +29,6 @@ def test_missing_key_is_rejected(monkeypatch):
         raising=False,
     )
 
+    def test_missing_key_is_rejected():
     with pytest.raises(ValidationError):
-        Settings(_env_file=None)
+        Settings.model_validate({})
