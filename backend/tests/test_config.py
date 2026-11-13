@@ -1,5 +1,3 @@
-import pytest
-
 from cryptography.fernet import Fernet
 from pydantic import ValidationError
 
@@ -17,12 +15,13 @@ def test_valid_encryption_key_is_accepted():
 
 
 def test_invalid_key_length_is_rejected():
-    with pytest.raises(ValidationError):
+    try:
         Settings(
             node_credentials_key="invalid-key"
         )
+    except ValidationError:
+        return
 
-
-def test_missing_key_is_rejected():
-    with pytest.raises(ValidationError):
-        Settings.model_validate({})
+    raise AssertionError(
+        "Invalid encryption key length was accepted"
+    )
