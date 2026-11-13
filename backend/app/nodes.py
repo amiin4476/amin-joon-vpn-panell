@@ -8,6 +8,10 @@ from .database import get_db
 from .models import Node, User
 from .permissions import require_admin
 from .node_security import encrypt_node_token
+from .node_client import (
+    NodeConnectionError,
+    check_node_health,
+)
 
 
 router = APIRouter(
@@ -126,6 +130,63 @@ def list_nodes(
         .limit(limit)
         .all()
     )
+
+
+@router.post("/{node_id}/health")
+async def check_node(
+    node_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    node = db.query(Node).filter(
+        Node.id == node_id
+    ).first()
+
+    if not node:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="سرور پیدا نشد",
+        )
+
+    if not node.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="این سرور غیرفعال است",
+        )
+
+    if not node.agent_token_encrypted:
+        node.status = "offline"
+        db.commit()
+
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="توکن Agent برای این سرور ثبت نشده است",
+        )
+
+    try:
+        result = await check_node_health(
+            host=node.host,
+            port=node.agent_port,
+            encrypted_token=node.agent_token_encrypted,
+        )
+
+        node.status = "online"
+        db.commit()
+
+        return {
+            "status": "online",
+            "node_id": node.id,
+            "agent": result,
+        }
+
+    except (NodeConnectionError, ValueError):
+        node.status = "offline"
+        db.commit()
+
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="ارتباط با Agent سرور برقرار نشد",
+        )
 
 
 @router.get("/{node_id}", response_model=NodeResponse)
