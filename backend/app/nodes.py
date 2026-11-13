@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
@@ -20,12 +20,7 @@ class NodeCreate(BaseModel):
     host: str = Field(min_length=1, max_length=255)
     port: int = Field(default=22, ge=1, le=65535)
     agent_port: int = Field(default=9000, ge=1, le=65535)
-
-    agent_token: str = Field(
-        min_length=32,
-        max_length=512,
-    )
-
+    agent_token: str = Field(min_length=32, max_length=512)
     country: str | None = Field(default=None, max_length=100)
     city: str | None = Field(default=None, max_length=100)
     description: str | None = Field(default=None, max_length=500)
@@ -36,13 +31,7 @@ class NodeUpdate(BaseModel):
     host: str | None = Field(default=None, min_length=1, max_length=255)
     port: int | None = Field(default=None, ge=1, le=65535)
     agent_port: int | None = Field(default=None, ge=1, le=65535)
-
-    agent_token: str | None = Field(
-        default=None,
-        min_length=32,
-        max_length=512,
-    )
-
+    agent_token: str | None = Field(default=None, min_length=32, max_length=512)
     country: str | None = Field(default=None, max_length=100)
     city: str | None = Field(default=None, max_length=100)
     description: str | None = Field(default=None, max_length=500)
@@ -68,10 +57,27 @@ class NodeResponse(BaseModel):
 
 @router.get("/", response_model=list[NodeResponse])
 def list_nodes(
+    country: str | None = Query(default=None, max_length=100),
+    is_active: bool | None = None,
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    return db.query(Node).order_by(Node.id.desc()).all()
+    query = db.query(Node)
+
+    if country:
+        query = query.filter(Node.country == country)
+
+    if is_active is not None:
+        query = query.filter(Node.is_active == is_active)
+
+    return (
+        query.order_by(Node.id.desc())
+        .offset(offset)
+        .limit(limit)
+        .all()
+    )
 
 
 @router.get("/{node_id}", response_model=NodeResponse)
