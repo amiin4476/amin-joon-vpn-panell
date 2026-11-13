@@ -1,1 +1,7 @@
+{
+    email {$ACME_EMAIL:}
+}
 
+{$AGENT_DOMAIN:localhost} {
+    reverse_proxy node-agent:9000
+}
