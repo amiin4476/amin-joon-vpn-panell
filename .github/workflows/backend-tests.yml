@@ -1,3 +1,4 @@
+
 name: Backend Tests
 
 on:
@@ -17,15 +18,25 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Install backend dependencies
         working-directory: backend
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements-dev.txt
 
-      - name: Run tests
+      - name: Run backend tests
         working-directory: backend
         env:
           NODE_CREDENTIALS_KEY: "MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDA="
         run: |
           pytest
+
+      - name: Install agent dependencies
+        working-directory: agents
+        run: |
+          python -m pip install -r requirements.txt
+
+      - name: Check agent Python syntax
+        working-directory: agents
+        run: |
+          python -m compileall -q .
