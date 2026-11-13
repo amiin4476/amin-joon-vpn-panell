@@ -1,6 +1,7 @@
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
+from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from .database import get_db
@@ -57,6 +58,7 @@ class NodeResponse(BaseModel):
 
 @router.get("/", response_model=list[NodeResponse])
 def list_nodes(
+    search: str | None = Query(default=None, min_length=1, max_length=100),
     country: str | None = Query(default=None, max_length=100),
     is_active: bool | None = None,
     limit: int = Query(default=50, ge=1, le=100),
@@ -65,6 +67,17 @@ def list_nodes(
     admin: User = Depends(require_admin),
 ):
     query = db.query(Node)
+
+    if search:
+        pattern = f"%{search.strip()}%"
+        query = query.filter(
+            or_(
+                Node.name.ilike(pattern),
+                Node.host.ilike(pattern),
+                Node.city.ilike(pattern),
+                Node.country.ilike(pattern),
+            )
+        )
 
     if country:
         query = query.filter(Node.country == country)
