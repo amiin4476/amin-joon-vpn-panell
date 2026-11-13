@@ -11,11 +11,14 @@ from .schemas import UserResponse
 from .security import get_password_hash
 from .permissions import require_admin
 
+
 router = APIRouter(
     prefix="/users",
     tags=["User Management"],
 )
 
+
+# ---------- Schemas ----------
 
 class UserCreate(BaseModel):
     username: str = Field(min_length=3, max_length=100)
@@ -24,6 +27,18 @@ class UserCreate(BaseModel):
     role: Literal["reseller", "customer"] = "customer"
 
 
+class UserUpdate(BaseModel):
+    full_name: str | None = Field(default=None, max_length=150)
+    password: str | None = Field(default=None, min_length=12, max_length=128)
+    role: Literal["reseller", "customer"] | None = None
+
+
+class UserStatusUpdate(BaseModel):
+    is_active: bool
+
+
+# ---------- List Users ----------
+
 @router.get("/", response_model=list[UserResponse])
 def list_users(
     db: Session = Depends(get_db),
@@ -31,6 +46,8 @@ def list_users(
 ):
     return db.query(User).order_by(User.id.desc()).all()
 
+
+# ---------- Create User ----------
 
 @router.post(
     "/",
@@ -65,10 +82,47 @@ def create_user(
     db.refresh(user)
 
     return user
-    
-class UserStatusUpdate(BaseModel):
-    is_active: bool
 
+
+# ---------- Update User ----------
+
+@router.put("/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: int,
+    data: UserUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="کاربر پیدا نشد",
+        )
+
+    if user.id == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="امکان ویرایش حساب مدیر از این بخش وجود ندارد",
+        )
+
+    if data.full_name is not None:
+        user.full_name = data.full_name
+
+    if data.password is not None:
+        user.password_hash = get_password_hash(data.password)
+
+    if data.role is not None:
+        user.role = data.role
+
+    db.commit()
+    db.refresh(user)
+
+    return user
+
+
+# ---------- Activate / Deactivate User ----------
 
 @router.patch("/{user_id}/status", response_model=UserResponse)
 def update_user_status(
@@ -98,46 +152,8 @@ def update_user_status(
 
     return user
 
-class UserUpdate(BaseModel):
-    full_name: str | None = Field(default=None, max_length=150)
-    password: str | None = Field(default=None, min_length=12, max_length=128)
-    role: Literal["reseller", "customer"] | None = None
 
-
-@router.put("/{user_id}", response_model=UserResponse)
-def update_user(
-    user_id: int,
-    data: UserUpdate,
-    db: Session = Depends(get_db),
-    admin: User = Depends(require_admin),
-):
-    user = db.query(User).filter(User.id == user_id).first()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="کاربر پیدا نشد",
-        )
-
-    if user.id == admin.id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="امکان تغییر اطلاعات نقش یا رمز حساب مدیر از این بخش وجود ندارد",
-        )
-
-    if data.full_name is not None:
-        user.full_name = data.full_name
-
-    if data.password is not None:
-        user.password_hash = get_password_hash(data.password)
-
-    if data.role is not None:
-        user.role = data.role
-
-    db.commit()
-    db.refresh(user)
-
-    return user
+# ---------- Delete User ----------
 
 @router.delete("/{user_id}")
 def delete_user(
@@ -166,4 +182,3 @@ def delete_user(
         "status": "success",
         "message": "کاربر با موفقیت حذف شد",
     }
-
