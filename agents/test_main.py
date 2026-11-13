@@ -1,4 +1,3 @@
-
 import importlib
 import pytest
 from fastapi.testclient import TestClient
@@ -27,6 +26,15 @@ def test_health_endpoint(agent_client):
 
 def test_ping_requires_authentication(agent_client):
     response = agent_client.get("/api/v1/ping")
+
+    assert response.status_code == 401
+
+
+def test_ping_rejects_invalid_token(agent_client):
+    response = agent_client.get(
+        "/api/v1/ping",
+        headers={"Authorization": "Bearer wrong-token"},
+    )
 
     assert response.status_code == 401
 
