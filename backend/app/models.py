@@ -76,10 +76,10 @@ class Node(Base):
         nullable=False,
     )
 
-    # Node Agent port
+    # HTTPS port of the Node Agent
     agent_port = Column(
         Integer,
-        default=9000,
+        default=443,
         nullable=False,
     )
 
