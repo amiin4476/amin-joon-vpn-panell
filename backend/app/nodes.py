@@ -11,6 +11,7 @@ from .node_security import encrypt_node_token
 from .node_client import (
     NodeConnectionError,
     check_node_health,
+    get_node_metrics,
 )
 
 
@@ -58,6 +59,34 @@ class NodeResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+def get_node_or_404(db: Session, node_id: int):
+    node = db.query(Node).filter(
+        Node.id == node_id
+    ).first()
+
+    if not node:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="سرور پیدا نشد",
+        )
+
+    return node
+
+
+def validate_node_agent(node: Node):
+    if not node.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="این سرور غیرفعال است",
+        )
+
+    if not node.agent_token_encrypted:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="توکن Agent برای این سرور ثبت نشده است",
+        )
 
 
 @router.get("/stats/summary")
@@ -138,30 +167,8 @@ async def check_node(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    node = db.query(Node).filter(
-        Node.id == node_id
-    ).first()
-
-    if not node:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="سرور پیدا نشد",
-        )
-
-    if not node.is_active:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="این سرور غیرفعال است",
-        )
-
-    if not node.agent_token_encrypted:
-        node.status = "offline"
-        db.commit()
-
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="توکن Agent برای این سرور ثبت نشده است",
-        )
+    node = get_node_or_404(db, node_id)
+    validate_node_agent(node)
 
     try:
         result = await check_node_health(
@@ -189,21 +196,49 @@ async def check_node(
         )
 
 
+@router.get("/{node_id}/metrics")
+async def node_metrics(
+    node_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    node = get_node_or_404(db, node_id)
+    validate_node_agent(node)
+
+    try:
+        metrics = await get_node_metrics(
+            host=node.host,
+            port=node.agent_port,
+            encrypted_token=node.agent_token_encrypted,
+        )
+
+        node.status = "online"
+        db.commit()
+
+        return {
+            "node_id": node.id,
+            "node_name": node.name,
+            "status": "online",
+            "metrics": metrics,
+        }
+
+    except (NodeConnectionError, ValueError):
+        node.status = "offline"
+        db.commit()
+
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="دریافت اطلاعات منابع سرور ناموفق بود",
+        )
+
+
 @router.get("/{node_id}", response_model=NodeResponse)
 def get_node(
     node_id: int,
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    node = db.query(Node).filter(Node.id == node_id).first()
-
-    if not node:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="سرور پیدا نشد",
-        )
-
-    return node
+    return get_node_or_404(db, node_id)
 
 
 @router.post(
@@ -247,13 +282,7 @@ def update_node(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    node = db.query(Node).filter(Node.id == node_id).first()
-
-    if not node:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="سرور پیدا نشد",
-        )
+    node = get_node_or_404(db, node_id)
 
     changes = data.model_dump(
         exclude_unset=True,
@@ -292,13 +321,7 @@ def delete_node(
     db: Session = Depends(get_db),
     admin: User = Depends(require_admin),
 ):
-    node = db.query(Node).filter(Node.id == node_id).first()
-
-    if not node:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="سرور پیدا نشد",
-        )
+    node = get_node_or_404(db, node_id)
 
     db.delete(node)
     db.commit()
