@@ -1,12 +1,14 @@
-
-import os
-
 from functools import lru_cache
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    node_credentials_key: str
+    node_credentials_key: str = Field(
+        min_length=44,
+        max_length=44,
+    )
 
     model_config = SettingsConfigDict(
         env_file=".env",
