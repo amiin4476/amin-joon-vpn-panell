@@ -8,12 +8,11 @@ from .database import Base, engine
 from . import models
 from .auth import router as auth_router
 from .users import router as users_router
+from .nodes import router as nodes_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Create initial database tables.
-    # Production migrations will be managed with Alembic.
     Base.metadata.create_all(bind=engine)
     yield
 
@@ -21,9 +20,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AMIN JOON API",
     description="API مرکزی پنل مدیریت VPN امین جون",
-    version="0.2.0",
+    version="0.3.0",
     lifespan=lifespan,
 )
+
 
 app.add_middleware(
     CORSMiddleware,
@@ -33,8 +33,10 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
+
 app.include_router(auth_router)
 app.include_router(users_router)
+app.include_router(nodes_router)
 
 
 @app.get("/health", tags=["System"])
@@ -42,7 +44,7 @@ def health():
     return {
         "status": "ok",
         "project": "AMIN JOON",
-        "stage": "phase-1-authentication",
+        "stage": "phase-2-node-management",
     }
 
 
