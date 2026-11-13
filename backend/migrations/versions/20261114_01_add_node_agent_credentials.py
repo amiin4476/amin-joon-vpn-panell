@@ -1,5 +1,4 @@
-
-"""Add node agent credentials.
+"""Bootstrap database and add node agent credentials.
 
 Revision ID: 20261114_01
 Revises:
@@ -7,6 +6,9 @@ Revises:
 
 from alembic import op
 import sqlalchemy as sa
+
+from app.database import Base
+from app import models
 
 
 revision = "20261114_01"
@@ -17,11 +19,15 @@ depends_on = None
 
 def upgrade():
     connection = op.get_bind()
+
+    # Create missing tables on a fresh installation.
+    Base.metadata.create_all(bind=connection)
+
     inspector = sa.inspect(connection)
 
     if "nodes" not in inspector.get_table_names():
         raise RuntimeError(
-            "Nodes table must exist before this migration"
+            "Failed to create or locate nodes table"
         )
 
     columns = {
@@ -52,5 +58,5 @@ def upgrade():
 
 
 def downgrade():
-    # Keep these columns to avoid accidental data loss.
+    # Keep columns to avoid accidental data loss.
     pass
