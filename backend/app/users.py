@@ -98,3 +98,44 @@ def update_user_status(
 
     return user
 
+class UserUpdate(BaseModel):
+    full_name: str | None = Field(default=None, max_length=150)
+    password: str | None = Field(default=None, min_length=12, max_length=128)
+    role: Literal["reseller", "customer"] | None = None
+
+
+@router.put("/{user_id}", response_model=UserResponse)
+def update_user(
+    user_id: int,
+    data: UserUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="کاربر پیدا نشد",
+        )
+
+    if user.id == admin.id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="امکان تغییر اطلاعات نقش یا رمز حساب مدیر از این بخش وجود ندارد",
+        )
+
+    if data.full_name is not None:
+        user.full_name = data.full_name
+
+    if data.password is not None:
+        user.password_hash = get_password_hash(data.password)
+
+    if data.role is not None:
+        user.role = data.role
+
+    db.commit()
+    db.refresh(user)
+
+    return user
+
