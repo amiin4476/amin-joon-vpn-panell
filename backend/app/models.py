@@ -7,6 +7,7 @@ from sqlalchemy import (
     String,
     func,
 )
+
 from .database import Base
 
 
@@ -41,6 +42,62 @@ class User(Base):
     is_active = Column(
         Boolean,
         default=True,
+        nullable=False,
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+
+
+class Node(Base):
+    __tablename__ = "nodes"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    name = Column(
+        String(100),
+        unique=True,
+        nullable=False,
+    )
+
+    host = Column(
+        String(255),
+        nullable=False,
+    )
+
+    port = Column(
+        Integer,
+        default=22,
+        nullable=False,
+    )
+
+    country = Column(
+        String(100),
+        nullable=True,
+    )
+
+    city = Column(
+        String(100),
+        nullable=True,
+    )
+
+    description = Column(
+        String(500),
+        nullable=True,
+    )
+
+    is_active = Column(
+        Boolean,
+        default=True,
+        nullable=False,
+    )
+
+    status = Column(
+        String(20),
+        default="unknown",
         nullable=False,
     )
 
