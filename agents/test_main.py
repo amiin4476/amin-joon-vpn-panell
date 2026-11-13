@@ -152,7 +152,9 @@ def test_info_returns_node_information(agent_client):
     assert response.status_code == 200
 
     data = response.json()
+    node = data["node"]
 
-    assert data["node_name"] == "test-node"
-    assert data["country"] == "Germany"
-    assert data["city"] == "Frankfurt"
+    assert data["status"] == "received"
+    assert node["node_name"] == "test-node"
+    assert node["country"] == "Germany"
+    assert node["city"] == "Frankfurt"
