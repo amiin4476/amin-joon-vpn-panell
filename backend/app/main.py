@@ -1,13 +1,29 @@
+
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from .database import Base, engine
+from . import models
+from .auth import router as auth_router
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create initial database tables.
+    # Production migrations will be managed with Alembic.
+    Base.metadata.create_all(bind=engine)
+    yield
+
 
 app = FastAPI(
     title="AMIN JOON API",
     description="API مرکزی پنل مدیریت VPN امین جون",
-    version="0.1.0",
+    version="0.2.0",
+    lifespan=lifespan,
 )
 
-# در محیط production، originها باید به دامنه‌های واقعی پنل محدود شوند.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -16,13 +32,17 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
+app.include_router(auth_router)
+
+
 @app.get("/health", tags=["System"])
 def health():
     return {
         "status": "ok",
         "project": "AMIN JOON",
-        "stage": "phase-0-foundation",
+        "stage": "phase-1-authentication",
     }
+
 
 @app.get("/", tags=["System"])
 def root():
