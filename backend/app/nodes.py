@@ -74,6 +74,23 @@ def list_nodes(
     return db.query(Node).order_by(Node.id.desc()).all()
 
 
+@router.get("/{node_id}", response_model=NodeResponse)
+def get_node(
+    node_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    node = db.query(Node).filter(Node.id == node_id).first()
+
+    if not node:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="سرور پیدا نشد",
+        )
+
+    return node
+
+
 @router.post(
     "/",
     response_model=NodeResponse,
