@@ -10,9 +10,6 @@ services:
       AGENT_TOKEN: ${AGENT_TOKEN:?AGENT_TOKEN must be set}
       NODE_NAME: ${NODE_NAME:-unknown-node}
 
-    ports:
-      - "127.0.0.1:9000:9000"
-
     restart: unless-stopped
 
     read_only: true
@@ -25,3 +22,44 @@ services:
 
     tmpfs:
       - /tmp
+
+    networks:
+      - agent-network
+
+  caddy:
+    image: caddy:2
+
+    container_name: amin-joon-agent-caddy
+
+    environment:
+      AGENT_DOMAIN: ${AGENT_DOMAIN:-localhost}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+    restart: unless-stopped
+
+    security_opt:
+      - no-new-privileges:true
+
+    networks:
+      - agent-network
+
+    depends_on:
+      - node-agent
+
+networks:
+  agent-network:
+    driver: bridge
+
+volumes:
+  caddy_data:
+  caddy_config:
