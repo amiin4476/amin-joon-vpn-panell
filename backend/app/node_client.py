@@ -1,3 +1,6 @@
+
+import ipaddress
+
 import httpx
 
 from .node_security import decrypt_node_token
@@ -5,6 +8,30 @@ from .node_security import decrypt_node_token
 
 class NodeConnectionError(Exception):
     pass
+
+
+def format_node_host(host: str) -> str:
+    if not host:
+        raise NodeConnectionError("Node host is missing")
+
+    host = host.strip()
+
+    if host.startswith("[") and host.endswith("]"):
+        host = host[1:-1]
+
+    try:
+        address = ipaddress.ip_address(host)
+
+        if isinstance(address, ipaddress.IPv6Address):
+            return f"[{address.compressed}]"
+
+        return address.compressed
+
+    except ValueError:
+        if any(char in host for char in "/?#@:"):
+            raise NodeConnectionError("Invalid node host")
+
+        return host
 
 
 async def request_node(
@@ -19,9 +46,16 @@ async def request_node(
             "Node host or credentials are missing"
         )
 
+    if not 1 <= port <= 65535:
+        raise NodeConnectionError("Invalid node port")
+
+    if not endpoint.startswith("/") or endpoint.startswith("//"):
+        raise NodeConnectionError("Invalid node endpoint")
+
     token = decrypt_node_token(encrypted_token)
 
-    url = f"https://{host}:{port}{endpoint}"
+    formatted_host = format_node_host(host)
+    url = f"https://{formatted_host}:{port}{endpoint}"
 
     headers = {
         "Authorization": f"Bearer {token}",
