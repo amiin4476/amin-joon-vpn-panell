@@ -1,7 +1,3 @@
-{
-    email {$ACME_EMAIL:}
-}
-
 {$AGENT_DOMAIN:localhost} {
     tls {
         issuer acme {
