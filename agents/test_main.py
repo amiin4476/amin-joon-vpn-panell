@@ -123,3 +123,36 @@ def test_rate_limit_blocks_excess_requests(agent_client):
         for response in responses[:60]
     )
     assert responses[60].status_code == 429
+
+
+def test_info_requires_authentication(agent_client):
+    response = agent_client.post(
+        "/api/v1/info",
+        json={"node_name": "test-node"},
+    )
+
+    assert response.status_code == 401
+
+
+def test_info_returns_node_information(agent_client):
+    response = agent_client.post(
+        "/api/v1/info",
+        headers={
+            "Authorization": (
+                "Bearer test-agent-token-12345678901234567890"
+            )
+        },
+        json={
+            "node_name": "test-node",
+            "country": "Germany",
+            "city": "Frankfurt",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["node_name"] == "test-node"
+    assert data["country"] == "Germany"
+    assert data["city"] == "Frankfurt"
