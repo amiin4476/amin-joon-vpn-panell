@@ -21,7 +21,7 @@ async def request_node(
 
     token = decrypt_node_token(encrypted_token)
 
-    url = f"http://{host}:{port}{endpoint}"
+    url = f"https://{host}:{port}{endpoint}"
 
     headers = {
         "Authorization": f"Bearer {token}",
@@ -39,7 +39,6 @@ async def request_node(
             )
 
             response.raise_for_status()
-
             return response.json()
 
     except httpx.HTTPError as exc:
@@ -54,10 +53,10 @@ async def check_node_health(
     encrypted_token: str,
 ):
     return await request_node(
-        host=host,
-        port=port,
-        encrypted_token=encrypted_token,
-        endpoint="/api/v1/ping",
+        host,
+        port,
+        encrypted_token,
+        "/api/v1/ping",
     )
 
 
@@ -67,8 +66,8 @@ async def get_node_metrics(
     encrypted_token: str,
 ):
     return await request_node(
-        host=host,
-        port=port,
-        encrypted_token=encrypted_token,
-        endpoint="/api/v1/metrics",
+        host,
+        port,
+        encrypted_token,
+        "/api/v1/metrics",
     )
