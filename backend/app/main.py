@@ -1,15 +1,26 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .auth import router as auth_router
 from .users import router as users_router
 from .nodes import router as nodes_router
+from .node_security import get_node_fernet
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Validate the encryption key before starting the API.
+    get_node_fernet()
+    yield
 
 
 app = FastAPI(
     title="AMIN JOON API",
     description="API مرکزی پنل مدیریت VPN امین جون",
     version="0.4.0",
+    lifespan=lifespan,
 )
 
 
