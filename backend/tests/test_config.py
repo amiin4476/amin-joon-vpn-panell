@@ -23,6 +23,11 @@ def test_invalid_key_length_is_rejected():
         )
 
 
-def test_missing_key_is_rejected():
+def test_missing_key_is_rejected(monkeypatch):
+    monkeypatch.delenv(
+        "NODE_CREDENTIALS_KEY",
+        raising=False,
+    )
+
     with pytest.raises(ValidationError):
-        Settings()
+        Settings(_env_file=None)
