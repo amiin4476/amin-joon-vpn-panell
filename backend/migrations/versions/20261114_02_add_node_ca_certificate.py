@@ -15,18 +15,34 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
-        "nodes",
-        sa.Column(
-            "agent_ca_certificate",
-            sa.Text(),
-            nullable=True,
-        ),
-    )
+    inspector = sa.inspect(op.get_bind())
+
+    columns = {
+        column["name"]
+        for column in inspector.get_columns("nodes")
+    }
+
+    if "agent_ca_certificate" not in columns:
+        op.add_column(
+            "nodes",
+            sa.Column(
+                "agent_ca_certificate",
+                sa.Text(),
+                nullable=True,
+            ),
+        )
 
 
 def downgrade():
-    op.drop_column(
-        "nodes",
-        "agent_ca_certificate",
-    )
+    inspector = sa.inspect(op.get_bind())
+
+    columns = {
+        column["name"]
+        for column in inspector.get_columns("nodes")
+    }
+
+    if "agent_ca_certificate" in columns:
+        op.drop_column(
+            "nodes",
+            "agent_ca_certificate",
+        )
