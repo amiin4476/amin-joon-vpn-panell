@@ -64,12 +64,7 @@ def test_metrics_returns_resource_data(
         "cpu_percent",
         lambda interval=None: 25.5,
     )
-
-    monkeypatch.setattr(
-        main.psutil,
-        "cpu_count",
-        lambda: 4,
-    )
+    monkeypatch.setattr(main.psutil, "cpu_count", lambda: 4)
 
     class FakeMemory:
         total = 1000
@@ -87,7 +82,6 @@ def test_metrics_returns_resource_data(
         "virtual_memory",
         lambda: FakeMemory(),
     )
-
     monkeypatch.setattr(
         main.psutil,
         "disk_usage",
@@ -110,3 +104,22 @@ def test_metrics_returns_resource_data(
     assert data["cpu_percent"] == 25.5
     assert data["memory_percent"] == 60.0
     assert data["disk_percent"] == 40.0
+
+
+def test_rate_limit_blocks_excess_requests(agent_client):
+    headers = {
+        "Authorization": (
+            "Bearer test-agent-token-12345678901234567890"
+        )
+    }
+
+    responses = [
+        agent_client.get("/api/v1/ping", headers=headers)
+        for _ in range(61)
+    ]
+
+    assert all(
+        response.status_code == 200
+        for response in responses[:60]
+    )
+    assert responses[60].status_code == 429
