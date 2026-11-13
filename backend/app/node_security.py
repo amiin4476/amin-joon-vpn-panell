@@ -1,4 +1,3 @@
-
 from cryptography.fernet import Fernet, InvalidToken
 
 from .config import get_node_encryption_key
@@ -12,7 +11,7 @@ def get_node_fernet() -> Fernet:
     except (ValueError, TypeError):
         raise RuntimeError(
             "NODE_CREDENTIALS_KEY is invalid"
-        )
+        ) from None
 
 
 def encrypt_node_token(token: str) -> str:
@@ -35,4 +34,4 @@ def decrypt_node_token(encrypted_token: str) -> str:
     except InvalidToken:
         raise ValueError(
             "Node token could not be decrypted"
-        )
+        ) from None
