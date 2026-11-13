@@ -1,27 +1,15 @@
-
-from contextlib import asynccontextmanager
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .database import Base, engine
-from . import models
 from .auth import router as auth_router
 from .users import router as users_router
 from .nodes import router as nodes_router
 
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    Base.metadata.create_all(bind=engine)
-    yield
-
-
 app = FastAPI(
     title="AMIN JOON API",
     description="API مرکزی پنل مدیریت VPN امین جون",
-    version="0.3.0",
-    lifespan=lifespan,
+    version="0.4.0",
 )
 
 
