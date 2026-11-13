@@ -65,3 +65,36 @@ def create_user(
     db.refresh(user)
 
     return user
+    
+class UserStatusUpdate(BaseModel):
+    is_active: bool
+
+
+@router.patch("/{user_id}/status", response_model=UserResponse)
+def update_user_status(
+    user_id: int,
+    data: UserStatusUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(require_admin),
+):
+    if user_id == admin.id and not data.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="نمی‌توانید حساب مدیر واردشده را غیرفعال کنید",
+        )
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="کاربر پیدا نشد",
+        )
+
+    user.is_active = data.is_active
+
+    db.commit()
+    db.refresh(user)
+
+    return user
+
