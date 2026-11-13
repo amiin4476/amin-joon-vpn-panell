@@ -49,3 +49,14 @@ def test_decrypt_invalid_token(encryption_key):
         node_security.decrypt_node_token(
             "invalid-encrypted-token"
         )
+
+
+def test_invalid_fernet_key(monkeypatch):
+    monkeypatch.setattr(
+        node_security,
+        "get_node_encryption_key",
+        lambda: "!" * 44,
+    )
+
+    with pytest.raises(RuntimeError):
+        node_security.get_node_fernet()
