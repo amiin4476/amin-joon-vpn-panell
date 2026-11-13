@@ -2,3 +2,6 @@
 
 # Testing
 pytest>=8.3,<9.0
+
+# HTTP client
+httpx==0.28.1
