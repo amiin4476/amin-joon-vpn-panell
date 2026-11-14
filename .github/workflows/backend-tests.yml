@@ -28,6 +28,7 @@ jobs:
         working-directory: backend
         env:
           NODE_CREDENTIALS_KEY: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
+          APP_SECRET_KEY: "test-only-secret-key-for-github-actions-aminjoon"
         run: |
           pytest
 
