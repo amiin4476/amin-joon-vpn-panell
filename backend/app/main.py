@@ -1,3 +1,4 @@
+
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -7,12 +8,14 @@ from .auth import router as auth_router
 from .users import router as users_router
 from .nodes import router as nodes_router
 from .node_security import get_node_fernet
+from .config import get_settings
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Validate the encryption key before starting the API.
+    # Validate encryption and application settings before startup.
     get_node_fernet()
+    get_settings()
     yield
 
 
@@ -24,9 +27,11 @@ app = FastAPI(
 )
 
 
+settings = get_settings()
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE"],
     allow_headers=["Authorization", "Content-Type"],
