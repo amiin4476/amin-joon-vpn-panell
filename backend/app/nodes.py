@@ -39,7 +39,6 @@ def normalize_node_host(value: str | None) -> str | None:
     try:
         address = ipaddress.ip_address(host)
         return address.compressed
-
     except ValueError:
         pass
 
@@ -48,6 +47,10 @@ def normalize_node_host(value: str | None) -> str | None:
 
     if any(char.isspace() for char in host):
         raise ValueError("آدرس سرور معتبر نیست")
+
+    # Reject malformed IPv4 addresses instead of treating them as domains.
+    if re.fullmatch(r"[0-9.]+", host):
+        raise ValueError("آدرس IP معتبر نیست")
 
     try:
         host = host.rstrip(".").encode("idna").decode("ascii").lower()
