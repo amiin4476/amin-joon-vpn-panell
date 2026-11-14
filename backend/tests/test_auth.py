@@ -6,21 +6,54 @@ from fastapi.security import HTTPAuthorizationCredentials
 
 from app import auth
 from app.models import User
+from app.schemas import LoginRequest
+from app.security import get_password_hash
 
 
-def test_login_success(db, active_user, monkeypatch):
+TEST_PASSWORD = "StrongPassword123!"
+
+
+def create_test_user(
+    db,
+    username="testuser",
+    role="customer",
+    is_active=True,
+):
+    user = User(
+        username=username,
+        password_hash=get_password_hash(TEST_PASSWORD),
+        full_name="Test User",
+        role=role,
+        is_active=is_active,
+    )
+
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return user
+
+
+def make_credentials(token="valid-token"):
+    return HTTPAuthorizationCredentials(
+        scheme="Bearer",
+        credentials=token,
+    )
+
+
+def test_login_success(db, monkeypatch):
+    user = create_test_user(db)
+
     monkeypatch.setattr(
         auth,
         "create_access_token",
         lambda **kwargs: "test-access-token",
     )
 
-    from app.schemas import LoginRequest
-
     response = auth.login(
         LoginRequest(
-            username=active_user.username,
-            password="StrongPassword123!",
+            username=user.username,
+            password=TEST_PASSWORD,
         ),
         db,
     )
@@ -28,13 +61,13 @@ def test_login_success(db, active_user, monkeypatch):
     assert response.access_token == "test-access-token"
 
 
-def test_login_rejects_wrong_password(db, active_user):
-    from app.schemas import LoginRequest
+def test_login_rejects_wrong_password(db):
+    user = create_test_user(db)
 
     with pytest.raises(HTTPException) as exc:
         auth.login(
             LoginRequest(
-                username=active_user.username,
+                username=user.username,
                 password="WrongPassword123!",
             ),
             db,
@@ -43,17 +76,17 @@ def test_login_rejects_wrong_password(db, active_user):
     assert exc.value.status_code == 401
 
 
-def test_login_rejects_inactive_user(db, active_user):
-    from app.schemas import LoginRequest
-
-    active_user.is_active = False
-    db.commit()
+def test_login_rejects_inactive_user(db):
+    user = create_test_user(
+        db,
+        is_active=False,
+    )
 
     with pytest.raises(HTTPException) as exc:
         auth.login(
             LoginRequest(
-                username=active_user.username,
-                password="StrongPassword123!",
+                username=user.username,
+                password=TEST_PASSWORD,
             ),
             db,
         )
@@ -61,27 +94,27 @@ def test_login_rejects_inactive_user(db, active_user):
     assert exc.value.status_code == 403
 
 
-def test_get_current_user_success(db, active_user, monkeypatch):
+def test_get_current_user_success(db, monkeypatch):
+    user = create_test_user(db)
+
     monkeypatch.setattr(
         auth,
         "decode_access_token",
         lambda token: {
-            "sub": str(active_user.id),
-            "username": active_user.username,
-            "role": active_user.role,
+            "sub": str(user.id),
+            "username": user.username,
+            "role": user.role,
         },
     )
 
-    credentials = HTTPAuthorizationCredentials(
-        scheme="Bearer",
-        credentials="valid-token",
+    result = auth.get_current_user(
+        make_credentials(),
+        db,
     )
 
-    result = auth.get_current_user(credentials, db)
-
-    assert result.id == active_user.id
-    assert result.username == active_user.username
-    assert result.role == active_user.role
+    assert result.id == user.id
+    assert result.username == user.username
+    assert result.role == user.role
 
 
 def test_get_current_user_rejects_missing_credentials(db):
@@ -100,115 +133,112 @@ def test_get_current_user_rejects_invalid_token(db, monkeypatch):
         ),
     )
 
-    credentials = HTTPAuthorizationCredentials(
-        scheme="Bearer",
-        credentials="invalid-token",
-    )
-
     with pytest.raises(HTTPException) as exc:
-        auth.get_current_user(credentials, db)
+        auth.get_current_user(
+            make_credentials("invalid-token"),
+            db,
+        )
 
     assert exc.value.status_code == 401
 
 
 def test_get_current_user_rejects_missing_username(
     db,
-    active_user,
     monkeypatch,
 ):
+    user = create_test_user(db)
+
     monkeypatch.setattr(
         auth,
         "decode_access_token",
-        lambda token: {"sub": str(active_user.id)},
-    )
-
-    credentials = HTTPAuthorizationCredentials(
-        scheme="Bearer",
-        credentials="valid-token",
+        lambda token: {
+            "sub": str(user.id),
+            "role": user.role,
+        },
     )
 
     with pytest.raises(HTTPException) as exc:
-        auth.get_current_user(credentials, db)
+        auth.get_current_user(
+            make_credentials(),
+            db,
+        )
 
     assert exc.value.status_code == 401
 
 
 def test_get_current_user_rejects_wrong_username(
     db,
-    active_user,
     monkeypatch,
 ):
+    user = create_test_user(db)
+
     monkeypatch.setattr(
         auth,
         "decode_access_token",
         lambda token: {
-            "sub": str(active_user.id),
+            "sub": str(user.id),
             "username": "another-user",
-            "role": active_user.role,
+            "role": user.role,
         },
     )
 
-    credentials = HTTPAuthorizationCredentials(
-        scheme="Bearer",
-        credentials="valid-token",
-    )
-
     with pytest.raises(HTTPException) as exc:
-        auth.get_current_user(credentials, db)
+        auth.get_current_user(
+            make_credentials(),
+            db,
+        )
 
     assert exc.value.status_code == 401
 
 
 def test_get_current_user_rejects_wrong_role(
     db,
-    active_user,
     monkeypatch,
 ):
+    user = create_test_user(db)
+
     monkeypatch.setattr(
         auth,
         "decode_access_token",
         lambda token: {
-            "sub": str(active_user.id),
-            "username": active_user.username,
+            "sub": str(user.id),
+            "username": user.username,
             "role": "different-role",
         },
     )
 
-    credentials = HTTPAuthorizationCredentials(
-        scheme="Bearer",
-        credentials="valid-token",
-    )
-
     with pytest.raises(HTTPException) as exc:
-        auth.get_current_user(credentials, db)
+        auth.get_current_user(
+            make_credentials(),
+            db,
+        )
 
     assert exc.value.status_code == 401
 
 
 def test_get_current_user_rejects_inactive_account(
     db,
-    active_user,
     monkeypatch,
 ):
-    active_user.is_active = False
+    user = create_test_user(db)
+
+    user.is_active = False
     db.commit()
 
     monkeypatch.setattr(
         auth,
         "decode_access_token",
         lambda token: {
-            "sub": str(active_user.id),
-            "username": active_user.username,
-            "role": active_user.role,
+            "sub": str(user.id),
+            "username": user.username,
+            "role": user.role,
         },
     )
 
-    credentials = HTTPAuthorizationCredentials(
-        scheme="Bearer",
-        credentials="valid-token",
-    )
-
     with pytest.raises(HTTPException) as exc:
-        auth.get_current_user(credentials, db)
+        auth.get_current_user(
+            make_credentials(),
+            db,
+        )
 
     assert exc.value.status_code == 401
