@@ -8,9 +8,22 @@ from pwdlib import PasswordHash
 
 password_hash = PasswordHash.recommended()
 
-SECRET_KEY = os.getenv("APP_SECRET_KEY")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
+
+
+def get_secret_key() -> str:
+    secret_key = os.getenv("APP_SECRET_KEY")
+
+    if not secret_key:
+        raise RuntimeError("APP_SECRET_KEY is not configured")
+
+    if len(secret_key.encode("utf-8")) < 32:
+        raise RuntimeError(
+            "APP_SECRET_KEY must contain at least 32 bytes"
+        )
+
+    return secret_key
 
 
 def get_password_hash(password: str) -> str:
@@ -26,8 +39,7 @@ def create_access_token(
     username: str,
     role: str,
 ) -> str:
-    if not SECRET_KEY:
-        raise RuntimeError("APP_SECRET_KEY is not configured")
+    secret_key = get_secret_key()
 
     expire = datetime.now(timezone.utc) + timedelta(
         minutes=ACCESS_TOKEN_EXPIRE_MINUTES
@@ -42,17 +54,16 @@ def create_access_token(
 
     return jwt.encode(
         payload,
-        SECRET_KEY,
+        secret_key,
         algorithm=ALGORITHM,
     )
 
 
 def decode_access_token(token: str) -> dict:
-    if not SECRET_KEY:
-        raise RuntimeError("APP_SECRET_KEY is not configured")
+    secret_key = get_secret_key()
 
     return jwt.decode(
         token,
-        SECRET_KEY,
+        secret_key,
         algorithms=[ALGORITHM],
     )
