@@ -1,8 +1,9 @@
 
 from functools import lru_cache
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -11,7 +12,10 @@ class Settings(BaseSettings):
         max_length=44,
     )
 
-    cors_origins: list[str] = Field(
+    cors_origins: Annotated[
+        list[str],
+        NoDecode,
+    ] = Field(
         default_factory=lambda: ["http://localhost:5173"]
     )
 
@@ -20,6 +24,14 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, value):
+        if isinstance(value, str):
+            return value.split(",")
+
+        return value
 
     @field_validator("cors_origins")
     @classmethod
