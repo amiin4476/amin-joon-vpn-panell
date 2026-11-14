@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta, timezone
 
 import jwt
 import pytest
@@ -96,3 +97,24 @@ def test_decode_access_token_rejects_missing_secret(monkeypatch):
 
     with pytest.raises(RuntimeError, match="not configured"):
         security.decode_access_token("some-token")
+
+
+def test_decode_access_token_rejects_expired_token(monkeypatch):
+    secret = "test-secret-key-with-at-least-32-characters"
+    monkeypatch.setenv("APP_SECRET_KEY", secret)
+
+    expired_payload = {
+        "sub": "1",
+        "username": "testuser",
+        "role": "admin",
+        "exp": datetime.now(timezone.utc) - timedelta(minutes=1),
+    }
+
+    token = jwt.encode(
+        expired_payload,
+        secret,
+        algorithm="HS256",
+    )
+
+    with pytest.raises(jwt.ExpiredSignatureError):
+        security.decode_access_token(token)
