@@ -1,9 +1,10 @@
 
-import os
 from datetime import datetime, timedelta, timezone
 
 import jwt
 from pwdlib import PasswordHash
+
+from .config import get_jwt_secret_key
 
 
 password_hash = PasswordHash.recommended()
@@ -13,17 +14,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 
 def get_secret_key() -> str:
-    secret_key = os.getenv("APP_SECRET_KEY")
-
-    if not secret_key:
-        raise RuntimeError("APP_SECRET_KEY is not configured")
-
-    if len(secret_key.encode("utf-8")) < 32:
-        raise RuntimeError(
-            "APP_SECRET_KEY must contain at least 32 bytes"
-        )
-
-    return secret_key
+    return get_jwt_secret_key()
 
 
 def get_password_hash(password: str) -> str:
