@@ -1,6 +1,9 @@
 
+import ipaddress
+import re
+
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy import func, or_
 from sqlalchemy.orm import Session
 
@@ -21,6 +24,55 @@ router = APIRouter(
 )
 
 
+def normalize_node_host(value: str | None) -> str | None:
+    if value is None:
+        return None
+
+    host = value.strip()
+
+    if not host:
+        raise ValueError("آدرس سرور نمی‌تواند خالی باشد")
+
+    if host.startswith("[") and host.endswith("]"):
+        host = host[1:-1]
+
+    try:
+        address = ipaddress.ip_address(host)
+        return address.compressed
+
+    except ValueError:
+        pass
+
+    if any(char in host for char in "/?#@:"):
+        raise ValueError("آدرس سرور معتبر نیست")
+
+    if any(char.isspace() for char in host):
+        raise ValueError("آدرس سرور معتبر نیست")
+
+    try:
+        host = host.rstrip(".").encode("idna").decode("ascii").lower()
+    except UnicodeError:
+        raise ValueError("نام دامنه معتبر نیست") from None
+
+    if not host or len(host) > 253:
+        raise ValueError("نام دامنه معتبر نیست")
+
+    labels = host.split(".")
+
+    for label in labels:
+        if (
+            not label
+            or len(label) > 63
+            or not re.fullmatch(
+                r"[a-z0-9](?:[a-z0-9-]*[a-z0-9])?",
+                label,
+            )
+        ):
+            raise ValueError("نام دامنه معتبر نیست")
+
+    return host
+
+
 class NodeCreate(BaseModel):
     name: str = Field(min_length=2, max_length=100)
     host: str = Field(min_length=1, max_length=255)
@@ -30,6 +82,11 @@ class NodeCreate(BaseModel):
     country: str | None = Field(default=None, max_length=100)
     city: str | None = Field(default=None, max_length=100)
     description: str | None = Field(default=None, max_length=500)
+
+    @field_validator("host")
+    @classmethod
+    def validate_host(cls, value: str) -> str:
+        return normalize_node_host(value)
 
 
 class NodeUpdate(BaseModel):
@@ -42,6 +99,11 @@ class NodeUpdate(BaseModel):
     city: str | None = Field(default=None, max_length=100)
     description: str | None = Field(default=None, max_length=500)
     is_active: bool | None = None
+
+    @field_validator("host")
+    @classmethod
+    def validate_host(cls, value: str | None) -> str | None:
+        return normalize_node_host(value)
 
 
 class NodeResponse(BaseModel):
