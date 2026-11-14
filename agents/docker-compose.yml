@@ -45,7 +45,6 @@ services:
 
     environment:
       AGENT_DOMAIN: ${AGENT_DOMAIN:?AGENT_DOMAIN must be set}
-      ACME_EMAIL: ${ACME_EMAIL:-}
 
     ports:
       - "80:80"
