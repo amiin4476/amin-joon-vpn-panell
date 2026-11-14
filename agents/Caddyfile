@@ -1,7 +1,9 @@
-{$AGENT_DOMAIN:localhost} {
+
+{$AGENT_DOMAIN} {
     tls {
         issuer acme {
             profile shortlived
+            email {$ACME_EMAIL:}
         }
     }
 
