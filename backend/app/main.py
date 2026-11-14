@@ -8,14 +8,14 @@ from .auth import router as auth_router
 from .users import router as users_router
 from .nodes import router as nodes_router
 from .node_security import get_node_fernet
-from .config import get_settings
+from .config import get_settings, get_jwt_secret_key
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Validate encryption and application settings before startup.
+    # Validate required security settings before starting the API.
     get_node_fernet()
-    get_settings()
+    get_jwt_secret_key()
     yield
 
 
