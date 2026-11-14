@@ -2,8 +2,8 @@
 from functools import lru_cache
 from typing import Annotated
 
-from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+from pydantic import Field, NoDecode, field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -11,6 +11,8 @@ class Settings(BaseSettings):
         min_length=44,
         max_length=44,
     )
+
+    app_secret_key: str | None = None
 
     cors_origins: Annotated[
         list[str],
@@ -65,3 +67,17 @@ def get_settings() -> Settings:
 
 def get_node_encryption_key() -> str:
     return get_settings().node_credentials_key
+
+
+def get_jwt_secret_key() -> str:
+    secret_key = get_settings().app_secret_key
+
+    if not secret_key:
+        raise RuntimeError("APP_SECRET_KEY is not configured")
+
+    if len(secret_key.encode("utf-8")) < 32:
+        raise RuntimeError(
+            "APP_SECRET_KEY must contain at least 32 bytes"
+        )
+
+    return secret_key
