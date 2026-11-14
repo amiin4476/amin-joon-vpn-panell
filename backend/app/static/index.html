@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>AMIN JOON | مدیریت VPN</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121d2e;--panel2:#18263a;--line:#26364d;--text:#e8eef7;--muted:#91a2b8;--accent:#55d6a5;--blue:#6ba8ff;--red:#ff7777}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 85% 0,#172b43 0,transparent 32%),var(--bg);color:var(--text);font-family:Tahoma,Arial,sans-serif;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:10px;padding:11px 15px;background:var(--accent);color:#092016;font-weight:700}button.secondary{background:#24354d;color:var(--text);border:1px solid var(--line)}button.danger{background:#4b2630;color:#ffd8dc;border:1px solid #743b49}button:disabled{opacity:.5;cursor:not-allowed}.hidden{display:none!important}.wrap{max-width:1200px;margin:auto;padding:24px}.top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}.brand{display:flex;align-items:center;gap:12px}.logo{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#58dfad,#5d9cff);display:grid;place-items:center;color:#081723;font-weight:900;font-size:20px}.brand h1{font-size:19px;margin:0}.brand p{margin:5px 0 0;color:var(--muted);font-size:12px}.top-actions{display:flex;gap:8px;align-items:center}.layout{display:grid;grid-template-columns:220px 1fr;gap:18px}.sidebar,.panel,.stat{background:rgba(18,29,46,.94);border:1px solid var(--line);border-radius:16px}.sidebar{padding:12px;height:max-content}.nav{display:flex;width:100%;text-align:right;background:transparent;color:var(--muted);margin:3px 0}.nav.active{background:#20344b;color:var(--text)}.content{min-width:0}.heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 16px}.heading h2{margin:0;font-size:21px}.muted{color:var(--muted)}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.stat{padding:17px}.stat span{font-size:12px;color:var(--muted)}.stat strong{display:block;font-size:27px;margin-top:9px}.panel{padding:17px;margin-bottom:16px}.panel h3{margin:0 0 14px;font-size:15px}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse;min-width:620px}th,td{text-align:right;padding:13px 10px;border-bottom:1px solid var(--line);font-size:13px}th{color:var(--muted);font-weight:500}tr:last-child td{border-bottom:0}.pill{display:inline-block;padding:5px 9px;border-radius:30px;background:#203b37;color:#83e5bf;font-size:11px}.pill.off{background:#442b32;color:#ff9aa4}.actions{display:flex;gap:7px;flex-wrap:wrap}.actions button{padding:7px 10px;font-size:11px}.empty{text-align:center;padding:28px;color:var(--muted)}.login{max-width:420px;margin:8vh auto;background:var(--panel);border:1px solid var(--line);padding:28px;border-radius:18px}.login h2{margin-top:0}.field{display:grid;gap:7px;margin:13px 0}.field label{font-size:12px;color:var(--muted)}input,select{width:100%;padding:12px;border-radius:10px;background:#0b1524;border:1px solid var(--line);color:var(--text);outline:none}input:focus,select:focus{border-color:var(--blue)}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}.message{padding:10px 12px;border-radius:10px;background:#24354d;color:#dceaff;margin:12px 0;font-size:12px}.message.error{background:#442b32;color:#ffc3ca}.toolbar{display:flex;gap:8px;flex-wrap:wrap}.modal{position:fixed;inset:0;background:#030812c9;display:grid;place-items:center;padding:16px;z-index:5}.modal-card{width:min(560px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px}.modal-head{display:flex;justify-content:space-between;align-items:center}.modal-head h3{margin:0}.toast{position:fixed;bottom:20px;left:20px;padding:12px 16px;background:#203b37;border:1px solid #36785f;border-radius:10px;z-index:9;font-size:13px;max-width:90vw}.toast.bad{background:#442b32;border-color:#743b49}.foot{text-align:center;color:#64778f;font-size:11px;padding:15px}
+@media(max-width:800px){.layout{grid-template-columns:1fr}.sidebar{display:flex;gap:5px;overflow:auto}.nav{white-space:nowrap;width:auto}.stats{grid-template-columns:repeat(2,1fr)}.wrap{padding:14px}.top{align-items:flex-start}.top-actions{flex-direction:column;align-items:stretch}}
+@media(max-width:480px){.stats{gap:8px}.stat{padding:12px}.stat strong{font-size:22px}.form-grid{grid-template-columns:1fr}.brand h1{font-size:15px}}
+</style>
+</head>
+<body>
+<div id="loginView" class="login">
+  <div class="brand"><div class="logo">AJ</div><div><h1>AMIN JOON</h1><p>پنل مدیریت متمرکز VPN</p></div></div>
+  <h2 style="margin-top:28px">ورود مدیر</h2>
+  <p class="muted" style="font-size:13px">با حساب مدیریتی ساخته‌شده روی سرور وارد شوید.</p>
+  <form id="loginForm">
+    <div class="field"><label>نام کاربری</label><input id="username" autocomplete="username" required minlength="3"></div>
+    <div class="field"><label>رمز عبور</label><input id="password" type="password" autocomplete="current-password" required></div>
+    <div id="loginError" class="message error hidden"></div>
+    <button style="width:100%;margin-top:8px">ورود به پنل</button>
+  </form>
+  <div class="foot">رایگان و متن‌باز · نسخه 0.5.0</div>
+</div>
+<div id="appView" class="hidden">
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><div class="logo">AJ</div><div><h1>AMIN JOON</h1><p>Advanced VPN Management System</p></div></div>
+    <div class="top-actions"><span id="whoami" class="muted" style="font-size:12px"></span><button class="secondary" id="logoutBtn">خروج</button></div>
+  </header>
+  <div class="layout">
+    <aside class="sidebar">
+      <button class="nav active" data-page="overview">نمای کلی</button>
+      <button class="nav" data-page="nodes">مدیریت سرورها</button>
+      <button class="nav" data-page="users">مدیریت کاربران</button>
+      <button class="nav" data-page="api">وضعیت سیستم</button>
+    </aside>
+    <main class="content">
+      <section id="page-overview">
+        <div class="heading"><h2>نمای کلی</h2><button class="secondary" id="refreshBtn">به‌روزرسانی</button></div>
+        <div class="stats">
+          <div class="stat"><span>کل سرورها</span><strong id="statNodes">—</strong></div>
+          <div class="stat"><span>سرورهای فعال</span><strong id="statActive">—</strong></div>
+          <div class="stat"><span>سرورهای غیرفعال</span><strong id="statInactive">—</strong></div>
+          <div class="stat"><span>کاربران ثبت‌شده</span><strong id="statUsers">—</strong></div>
+        </div>
+        <div class="panel"><h3>آخرین سرورها</h3><div id="overviewNodes" class="table-wrap"><div class="empty">در حال دریافت اطلاعات…</div></div></div>
+        <div class="panel"><h3>راهنمای سریع</h3><p class="muted" style="font-size:13px;line-height:2">از بخش مدیریت سرورها می‌توانید نود جدید ثبت کنید و ارتباط Agent را آزمایش کنید. از بخش کاربران نیز حساب مشتری یا نماینده بسازید. این نسخه فقط قابلیت‌هایی را نمایش می‌دهد که API فعلی پروژه پشتیبانی می‌کند.</p></div>
+      </section>
+      <section id="page-nodes" class="hidden">
+        <div class="heading"><h2>مدیریت سرورها</h2><button id="addNodeBtn">+ افزودن سرور</button></div>
+        <div class="panel"><div id="nodesTable" class="table-wrap"><div class="empty">در حال دریافت…</div></div></div>
+      </section>
+      <section id="page-users" class="hidden">
+        <div class="heading"><h2>مدیریت کاربران</h2><button id="addUserBtn">+ افزودن کاربر</button></div>
+        <div class="panel"><div id="usersTable" class="table-wrap"><div class="empty">در حال دریافت…</div></div></div>
+      </section>
+      <section id="page-api" class="hidden">
+        <div class="heading"><h2>وضعیت سیستم</h2></div>
+        <div class="panel"><h3>سلامت API</h3><div id="healthResult" class="muted">در حال بررسی…</div></div>
+        <div class="panel"><h3>مسیرهای کاربردی</h3><p class="muted">مستندات API: <a href="/docs" target="_blank" style="color:var(--blue)">/docs</a></p><p class="muted">داشبورد: /panel</p></div>
+      </section>
+    </main>
+  </div>
+  <div class="foot">AMIN JOON · متن‌باز تحت مجوز AGPL-3.0</div>
+</div>
+</div>
+<div id="modal" class="modal hidden"><div class="modal-card"><div class="modal-head"><h3 id="modalTitle"></h3><button class="secondary" id="closeModal">بستن</button></div><div id="modalBody"></div></div></div>
+<div id="toast" class="toast hidden"></div>
+<script>
+(() => {
+ const $=id=>document.getElementById(id);
+ let token=localStorage.getItem('aj_token')||'';
+ let currentUser=null, nodes=[], users=[];
+ const headers=()=>({'Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{})});
+ async function api(path,options={}) {
+   const res=await fetch(path,{...options,headers:{...headers(),...(options.headers||{})}});
+   const raw=await res.text(); let data={}; try{data=raw?JSON.parse(raw):{}}catch{}
+   if(res.status===401){logout();throw new Error('نشست شما منقضی شده است؛ دوباره وارد شوید.')}
+   if(!res.ok) throw new Error(data.detail||('خطای سرور: '+res.status));
+   return data;
+ }
+ function toast(msg,bad=false){$('toast').textContent=msg;$('toast').classList.toggle('bad',bad);$('toast').classList.remove('hidden');setTimeout(()=>$('toast').classList.add('hidden'),3500)}
+ function esc(v){return String(v??'—').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+ function showLogin(){ $('loginView').classList.remove('hidden');$('appView').classList.add('hidden') }
+ function showApp(){ $('loginView').classList.add('hidden');$('appView').classList.remove('hidden');$('whoami').textContent=currentUser?.username||'';loadAll() }
+ function logout(){token='';currentUser=null;localStorage.removeItem('aj_token');showLogin()}
+ $('loginForm').addEventListener('submit',async e=>{e.preventDefault();$('loginError').classList.add('hidden');try{const d=await fetch('/auth/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({username:$('username').value,password:$('password').value})});const j=await d.json();if(!d.ok)throw new Error(j.detail||'ورود ناموفق بود');token=j.access_token;localStorage.setItem('aj_token',token);currentUser=await api('/auth/me');if(currentUser.role!=='admin')throw new Error('این داشبورد مخصوص مدیر سیستم است.');showApp()}catch(err){$('loginError').textContent=err.message;$('loginError').classList.remove('hidden')}});
+ $('logoutBtn').onclick=logout;$('refreshBtn').onclick=loadAll;
+ document.querySelectorAll('.nav').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav').forEach(x=>x.classList.remove('active'));b.classList.add('active');document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));$('page-'+b.dataset.page).classList.remove('hidden')});
+ async function loadAll(){await Promise.allSettled([loadNodes(),loadUsers(),loadHealth()])}
+ async function loadNodes(){try{nodes=await api('/nodes/');const s=await api('/nodes/stats/summary');$('statNodes').textContent=s.total;$('statActive').textContent=s.active;$('statInactive').textContent=s.inactive;renderNodes()}catch(e){$('nodesTable').innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message,true)}}
+ async function loadUsers(){try{users=await api('/users/');$('statUsers').textContent=users.length;renderUsers()}catch(e){$('usersTable').innerHTML='<div class="empty">'+esc(e.message)+'</div>';toast(e.message,true)}}
+ async function loadHealth(){try{const h=await api('/health');$('healthResult').innerHTML='<span class="pill">سالم</span> &nbsp; '+esc(h.project)+' · '+esc(h.stage)}catch(e){$('healthResult').textContent=e.message}}
+ function nodeRows(list){if(!list.length)return '<div class="empty">هنوز سروری ثبت نشده است.</div>';return '<table><thead><tr><th>نام</th><th>آدرس</th><th>موقعیت</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>'+list.map(n=>`<tr><td>${esc(n.name)}</td><td dir="ltr">${esc(n.host)}:${esc(n.agent_port)}</td><td>${esc([n.city,n.country].filter(Boolean).join('، ')||'—')}</td><td><span class="pill ${n.status==='online'?'':'off'}">${esc(n.status)}</span></td><td><div class="actions"><button class="secondary" data-health="${n.id}">تست ارتباط</button><button class="secondary" data-metrics="${n.id}">منابع</button><button class="danger" data-delete-node="${n.id}">حذف</button></div></td></tr>`).join('')+'</tbody></table>'}
+ function renderNodes(){$('nodesTable').innerHTML=nodeRows(nodes);$('overviewNodes').innerHTML=nodeRows(nodes.slice(0,5));document.querySelectorAll('[data-health]').forEach(b=>b.onclick=()=>checkNode(b.dataset.health));document.querySelectorAll('[data-metrics]').forEach(b=>b.onclick=()=>showMetrics(b.dataset.metrics));document.querySelectorAll('[data-delete-node]').forEach(b=>b.onclick=()=>deleteNode(b.dataset.deleteNode))}
+ async function checkNode(id){try{const r=await api(`/nodes/${id}/health`,{method:'POST'});toast('ارتباط Agent برقرار است: '+(r.agent?.status||'online'));loadNodes()}catch(e){toast(e.message,true);loadNodes()}}
+ async function showMetrics(id){try{const r=await api(`/nodes/${id}/metrics`);const m=r.metrics||{};openModal('وضعیت منابع سرور',`<pre style="white-space:pre-wrap;direction:ltr;text-align:left;color:var(--text)">${esc(JSON.stringify(m,null,2))}</pre>`)}catch(e){toast(e.message,true)}}
+ async function deleteNode(id){if(!confirm('این سرور حذف شود؟'))return;try{await api('/nodes/'+id,{method:'DELETE'});toast('سرور حذف شد');loadNodes()}catch(e){toast(e.message,true)}}
+ function renderUsers(){if(!users.length){$('usersTable').innerHTML='<div class="empty">هنوز کاربری ثبت نشده است.</div>';return}$('usersTable').innerHTML='<table><thead><tr><th>شناسه</th><th>نام کاربری</th><th>نام</th><th>نقش</th><th>وضعیت</th><th>عملیات</th></tr></thead><tbody>'+users.map(u=>`<tr><td>${u.id}</td><td>${esc(u.username)}</td><td>${esc(u.full_name)}</td><td>${u.role==='reseller'?'نماینده':'مشتری'}</td><td><span class="pill ${u.is_active?'':'off'}">${u.is_active?'فعال':'غیرفعال'}</span></td><td><div class="actions"><button class="secondary" data-toggle-user="${u.id}" data-active="${u.is_active}">${u.is_active?'غیرفعال‌سازی':'فعال‌سازی'}</button><button class="danger" data-delete-user="${u.id}">حذف</button></div></td></tr>`).join('')+'</tbody></table>';document.querySelectorAll('[data-toggle-user]').forEach(b=>b.onclick=()=>toggleUser(b.dataset.toggleUser,b.dataset.active==='true'));document.querySelectorAll('[data-delete-user]').forEach(b=>b.onclick=()=>deleteUser(b.dataset.deleteUser))}
+ async function toggleUser(id,active){try{await api(`/users/${id}/status`,{method:'PATCH',body:JSON.stringify({is_active:!active})});toast('وضعیت کاربر تغییر کرد');loadUsers()}catch(e){toast(e.message,true)}}
+ async function deleteUser(id){if(!confirm('این کاربر حذف شود؟'))return;try{await api('/users/'+id,{method:'DELETE'});toast('کاربر حذف شد');loadUsers()}catch(e){toast(e.message,true)}}
+ function openModal(title,body){$('modalTitle').textContent=title;$('modalBody').innerHTML=body;$('modal').classList.remove('hidden')}
+ function closeModal(){$('modal').classList.add('hidden')}$('closeModal').onclick=closeModal;$('modal').onclick=e=>{if(e.target===$('modal'))closeModal()}
+ $('addNodeBtn').onclick=()=>openModal('افزودن سرور',`<form id="nodeForm"><div class="form-grid"><div class="field"><label>نام سرور</label><input name="name" required minlength="2"></div><div class="field"><label>آدرس IP یا دامنه</label><input name="host" required dir="ltr"></div><div class="field"><label>پورت SSH</label><input name="port" type="number" value="22" min="1" max="65535"></div><div class="field"><label>پورت Agent</label><input name="agent_port" type="number" value="443" min="1" max="65535"></div><div class="field"><label>کشور</label><input name="country"></div><div class="field"><label>شهر</label><input name="city"></div></div><div class="field"><label>توکن Agent (حداقل ۳۲ کاراکتر)</label><input name="agent_token" required minlength="32" dir="ltr"></div><div class="field"><label>توضیحات</label><input name="description"></div><div id="formError" class="message error hidden"></div><button>ثبت سرور</button></form>`);
+ $('modalBody').querySelector('#nodeForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);const d=Object.fromEntries(f.entries());d.port=Number(d.port);d.agent_port=Number(d.agent_port);try{await api('/nodes/',{method:'POST',body:JSON.stringify(d)});closeModal();toast('سرور با موفقیت ثبت شد');loadNodes()}catch(err){const box=$('formError');box.textContent=err.message;box.classList.remove('hidden')}};
+ $('addUserBtn').onclick=()=>openModal('افزودن کاربر',`<form id="userForm"><div class="field"><label>نام کاربری</label><input name="username" required minlength="3"></div><div class="field"><label>نام کامل</label><input name="full_name"></div><div class="field"><label>رمز عبور (حداقل ۱۲ کاراکتر)</label><input name="password" type="password" required minlength="12"></div><div class="field"><label>نوع حساب</label><select name="role"><option value="customer">مشتری</option><option value="reseller">نماینده</option></select></div><div id="formError" class="message error hidden"></div><button>ایجاد کاربر</button></form>`);
+ $('modalBody').querySelector('#userForm').onsubmit=async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target).entries());d.full_name=d.full_name||null;try{await api('/users/',{method:'POST',body:JSON.stringify(d)});closeModal();toast('کاربر ساخته شد');loadUsers()}catch(err){const box=$('formError');box.textContent=err.message;box.classList.remove('hidden')}};
+ $('addNodeBtn').disabled=false;
+ if(token){api('/auth/me').then(u=>{currentUser=u;if(u.role!=='admin')throw new Error('دسترسی مدیر لازم است');showApp()}).catch(()=>logout())}else showLogin();
+})();
+</script>
+</body>
+</html>

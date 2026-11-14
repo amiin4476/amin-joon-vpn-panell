@@ -1,5 +1,8 @@
 
 from contextlib import asynccontextmanager
+from pathlib import Path
+
+from fastapi.staticfiles import StaticFiles
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,7 +25,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="AMIN JOON API",
     description="API مرکزی پنل مدیریت VPN امین جون",
-    version="0.4.0",
+    version="0.5.0",
     lifespan=lifespan,
 )
 
@@ -59,3 +62,8 @@ def root():
         "message": "به API پنل امین جون خوش آمدید",
         "docs": "/docs",
     }
+
+
+# Web dashboard. API endpoints remain available at their existing paths.
+STATIC_DIR = Path(__file__).resolve().parent / "static"
+app.mount("/panel", StaticFiles(directory=STATIC_DIR, html=True), name="panel")
