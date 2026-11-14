@@ -36,3 +36,17 @@ def test_user_create_rejects_invalid_role():
 def test_user_update_rejects_invalid_role():
     with pytest.raises(ValidationError):
         UserUpdate(role="superadmin")
+
+
+def test_user_create_rejects_short_password():
+    with pytest.raises(ValidationError):
+        UserCreate(
+            username="shortpass",
+            password="short",
+            role="customer",
+        )
+
+
+def test_user_update_rejects_short_password():
+    with pytest.raises(ValidationError):
+        UserUpdate(password="short")
