@@ -3,7 +3,6 @@
     tls {
         issuer acme {
             profile shortlived
-            email {$ACME_EMAIL:}
         }
     }
 
